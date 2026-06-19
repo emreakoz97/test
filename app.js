@@ -9,13 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.querySelectorAll('.nav-link');
 
     // Header scroll background change
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    });
+    if (header) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    }
 
     // Mobile menu toggle
     if (menuToggle && nav) {
@@ -41,12 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Close menu when link clicked
     navLinks.forEach(link => {
         link.addEventListener('click', () => {
-            nav.classList.remove('open');
-            menuToggle.classList.remove('active');
+            if (nav) nav.classList.remove('open');
+            if (menuToggle) {
+                menuToggle.classList.remove('active');
+                const bars = menuToggle.querySelectorAll('.bar');
+                bars.forEach(bar => bar.style.transform = 'none');
+                if (bars[1]) bars[1].style.opacity = '1';
+            }
             document.body.classList.remove('menu-open');
-            const bars = menuToggle.querySelectorAll('.bar');
-            bars.forEach(bar => bar.style.transform = 'none');
-            bars[1].style.opacity = '1';
         });
     });
 
@@ -122,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const chkWallMount = document.getElementById('chk-wall-mount');
     const chkLed = document.getElementById('chk-led');
     
-    const calcPrice = document.getElementById('calc-price');
     const sendQuoteWa = document.getElementById('send-quote-wa');
 
     // Dynamic slider labels for each furniture type
@@ -191,17 +194,21 @@ document.addEventListener('DOMContentLoaded', () => {
             activeSliderVal.textContent = labelText;
         }
 
-        const spans = sliderLabelsContainer.querySelectorAll('span');
-        spans.forEach((span, idx) => {
-            if (idx === currentVal - 1) {
-                span.classList.add('active');
-            } else {
-                span.classList.remove('active');
-            }
-        });
+        if (sliderLabelsContainer) {
+            const spans = sliderLabelsContainer.querySelectorAll('span');
+            spans.forEach((span, idx) => {
+                if (idx === currentVal - 1) {
+                    span.classList.add('active');
+                } else {
+                    span.classList.remove('active');
+                }
+            });
+        }
     };
 
     const updateSliderLabels = () => {
+        if (!sliderLabelsContainer || !furnitureType) return;
+
         const selectedType = furnitureType.value;
         const labels = sliderLabelsData[selectedType] || sliderLabelsData['wardrobe'];
         
@@ -312,16 +319,20 @@ Bu montaj kurulum işi için fiyat teklifi alabilir miyim?`;
             const activeUsta = Math.floor(Math.random() * 3) + 2;
             const minDuration = 30 + Math.floor(Math.random() * 20); // 30-50 min
             
-            regionStatusText.innerHTML = `Harika! <strong>${regionName}</strong> bölgesinde şu an <strong>${activeUsta} aktif usta</strong> hazır bekliyor. Ekspres ulaşım süremiz yaklaşık <strong>${minDuration} dakikadır</strong>!`;
+            if (regionStatusText) {
+                regionStatusText.innerHTML = `Harika! <strong>${regionName}</strong> bölgesinde şu an <strong>${activeUsta} aktif usta</strong> hazır bekliyor. Ekspres ulaşım süremiz yaklaşık <strong>${minDuration} dakikadır</strong>!`;
+            }
             
             // Glow border effect on status box
-            regionStatusBox.style.borderColor = 'var(--color-cyan)';
-            regionStatusBox.style.boxShadow = 'var(--glow-cyan)';
-            
-            setTimeout(() => {
-                regionStatusBox.style.borderColor = 'var(--border-glass)';
-                regionStatusBox.style.boxShadow = 'none';
-            }, 1000);
+            if (regionStatusBox) {
+                regionStatusBox.style.borderColor = 'var(--color-cyan)';
+                regionStatusBox.style.boxShadow = 'var(--glow-cyan)';
+                
+                setTimeout(() => {
+                    regionStatusBox.style.borderColor = 'var(--border-glass)';
+                    regionStatusBox.style.boxShadow = 'none';
+                }, 1000);
+            }
         });
     });
 
@@ -360,21 +371,96 @@ Bu montaj kurulum işi için fiyat teklifi alabilir miyim?`;
     });
 
     // Auto loop slide
-    let autoSlideInterval = setInterval(() => {
-        let nextIndex = (currentIndex + 1) % slidesCount;
-        updateSlider(nextIndex);
-    }, 6000);
+    let autoSlideInterval = null;
 
-    // Stop auto slider when user clicks dot
-    const resetInterval = () => {
-        clearInterval(autoSlideInterval);
+    if (slidesCount > 0) {
         autoSlideInterval = setInterval(() => {
-            let nextIndex = (currentIndex + 1) % slidesCount;
+            const nextIndex = (currentIndex + 1) % slidesCount;
             updateSlider(nextIndex);
         }, 6000);
-    };
 
-    dots.forEach(dot => dot.addEventListener('click', resetInterval));
+        // Stop auto slider when user clicks dot
+        const resetInterval = () => {
+            clearInterval(autoSlideInterval);
+            autoSlideInterval = setInterval(() => {
+                const nextIndex = (currentIndex + 1) % slidesCount;
+                updateSlider(nextIndex);
+            }, 6000);
+        };
+
+        dots.forEach(dot => dot.addEventListener('click', resetInterval));
+    }
+
+
+    /* ==========================================
+       5b. PORTFOLIO GALLERY SLIDER
+       ========================================== */
+    const galleryTrack = document.getElementById('gallery-track');
+    const galleryPrev = document.getElementById('gallery-prev');
+    const galleryNext = document.getElementById('gallery-next');
+    const galleryDotsContainer = document.getElementById('gallery-dots');
+    const galleryItems = document.querySelectorAll('.gallery-item');
+
+    if (galleryTrack && galleryItems.length > 0) {
+        let galleryIndex = 0;
+        let galleryVisible = 1;
+
+        const getGalleryVisibleCount = () => {
+            if (window.innerWidth >= 1024) return 3;
+            if (window.innerWidth >= 640) return 2;
+            return 1;
+        };
+
+        const getGalleryMaxIndex = () => Math.max(0, galleryItems.length - galleryVisible);
+
+        const buildGalleryDots = () => {
+            if (!galleryDotsContainer) return;
+
+            const dotCount = getGalleryMaxIndex() + 1;
+            galleryDotsContainer.innerHTML = '';
+
+            for (let i = 0; i < dotCount; i++) {
+                const dot = document.createElement('span');
+                dot.className = `dot${i === galleryIndex ? ' active' : ''}`;
+                dot.addEventListener('click', () => updateGallery(i));
+                galleryDotsContainer.appendChild(dot);
+            }
+        };
+
+        const updateGallery = (index) => {
+            galleryVisible = getGalleryVisibleCount();
+            galleryIndex = Math.min(Math.max(index, 0), getGalleryMaxIndex());
+
+            const itemWidth = 100 / galleryVisible;
+            galleryItems.forEach(item => {
+                item.style.flex = `0 0 ${itemWidth}%`;
+            });
+
+            galleryTrack.style.transform = `translateX(-${galleryIndex * itemWidth}%)`;
+
+            if (galleryDotsContainer) {
+                galleryDotsContainer.querySelectorAll('.dot').forEach((dot, idx) => {
+                    dot.classList.toggle('active', idx === galleryIndex);
+                });
+            }
+
+            if (galleryPrev) galleryPrev.disabled = galleryIndex === 0;
+            if (galleryNext) galleryNext.disabled = galleryIndex >= getGalleryMaxIndex();
+        };
+
+        if (galleryPrev) {
+            galleryPrev.addEventListener('click', () => updateGallery(galleryIndex - 1));
+        }
+
+        if (galleryNext) {
+            galleryNext.addEventListener('click', () => updateGallery(galleryIndex + 1));
+        }
+
+        window.addEventListener('resize', () => updateGallery(galleryIndex));
+
+        buildGalleryDots();
+        updateGallery(0);
+    }
 
 
     /* ==========================================
@@ -391,8 +477,10 @@ Bu montaj kurulum işi için fiyat teklifi alabilir miyim?`;
             // Close all items
             document.querySelectorAll('.accordion-item').forEach(i => {
                 i.classList.remove('active');
-                i.querySelector('.accordion-body').style.maxHeight = '0';
-                i.querySelector('.accordion-header').setAttribute('aria-expanded', 'false');
+                const accordionBody = i.querySelector('.accordion-body');
+                const accordionHeader = i.querySelector('.accordion-header');
+                if (accordionBody) accordionBody.style.maxHeight = '0';
+                if (accordionHeader) accordionHeader.setAttribute('aria-expanded', 'false');
             });
 
             // Toggle item
