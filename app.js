@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         menuToggle.addEventListener('click', () => {
             nav.classList.toggle('open');
             menuToggle.classList.toggle('active');
+            document.body.classList.toggle('menu-open');
             
             // Toggle hamburger animation state
             const bars = menuToggle.querySelectorAll('.bar');
@@ -42,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', () => {
             nav.classList.remove('open');
             menuToggle.classList.remove('active');
+            document.body.classList.remove('menu-open');
             const bars = menuToggle.querySelectorAll('.bar');
             bars.forEach(bar => bar.style.transform = 'none');
             bars[1].style.opacity = '1';
@@ -176,6 +178,29 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
+    const activeSliderVal = document.getElementById('active-slider-val');
+
+    const updateActiveValue = () => {
+        if (!sizeFactor || !furnitureType) return;
+        const selectedType = furnitureType.value;
+        const labels = sliderLabelsData[selectedType] || [];
+        const currentVal = parseInt(sizeFactor.value, 10);
+        const labelText = labels[currentVal - 1] || `${currentVal}. Kademe`;
+        
+        if (activeSliderVal) {
+            activeSliderVal.textContent = labelText;
+        }
+
+        const spans = sliderLabelsContainer.querySelectorAll('span');
+        spans.forEach((span, idx) => {
+            if (idx === currentVal - 1) {
+                span.classList.add('active');
+            } else {
+                span.classList.remove('active');
+            }
+        });
+    };
+
     const updateSliderLabels = () => {
         const selectedType = furnitureType.value;
         const labels = sliderLabelsData[selectedType] || sliderLabelsData['wardrobe'];
@@ -187,17 +212,15 @@ document.addEventListener('DOMContentLoaded', () => {
             sliderLabelsContainer.appendChild(span);
         });
 
-        // Some services might not need a size slider (e.g. wall shelf could use pieces count)
-        // Ensure range stays 1-5
         sizeFactor.min = 1;
         sizeFactor.max = 5;
+        updateActiveValue();
     };
 
     // Listeners for Calculator inputs
     if (furnitureType && sizeFactor) {
-        furnitureType.addEventListener('change', () => {
-            updateSliderLabels();
-        });
+        furnitureType.addEventListener('change', updateSliderLabels);
+        sizeFactor.addEventListener('input', updateActiveValue);
         
         // Initial trigger
         updateSliderLabels();
