@@ -62,6 +62,10 @@ body.menu-open {
     overflow: hidden;
 }
 
+section[id] {
+    scroll-margin-top: 90px;
+}
+
 /* TYPOGRAPHY */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-main);
@@ -270,9 +274,10 @@ a {
 }
 
 .header-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
-    justify-content: space-between;
+    gap: 1.5rem;
     height: 80px;
     transition: var(--transition-smooth);
 }
@@ -285,6 +290,7 @@ a {
     display: flex;
     align-items: center;
     gap: 0.8rem;
+    flex-shrink: 0;
 }
 
 .logo-text {
@@ -311,29 +317,40 @@ a {
     filter: drop-shadow(0 0 5px rgba(230, 95, 43, 0.2));
 }
 
+.nav {
+    justify-self: center;
+    min-width: 0;
+}
+
 .nav-list {
     display: flex;
     list-style: none;
-    gap: 2rem;
+    gap: 1.4rem;
+    align-items: center;
+    flex-wrap: nowrap;
 }
 
 .nav-link {
     font-family: var(--font-mono);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: var(--text-secondary);
-    padding: 0.5rem 0.2rem;
+    padding: 0.4rem 0;
     position: relative;
+    white-space: nowrap;
+    display: inline-block;
 }
 
 .nav-link::after {
     content: '';
     position: absolute;
     bottom: 0;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
     width: 0;
     height: 2px;
-    background: var(--gradient-cyan);
+    border-radius: 2px;
+    background: var(--color-cyan);
     transition: var(--transition-fast);
 }
 
@@ -348,7 +365,14 @@ a {
 .header-cta {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.header-cta .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
 }
 
 .mobile-menu-toggle {
@@ -726,15 +750,17 @@ a {
     flex: 1;
     overflow: hidden;
     border-radius: 12px;
+    min-width: 0;
 }
 
 .gallery-track {
     display: flex;
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
 }
 
 .gallery-item {
-    flex: 0 0 100%;
+    flex-shrink: 0;
     padding: 0 0.5rem;
     box-sizing: border-box;
 }
@@ -1597,6 +1623,25 @@ a {
 
 /* RESPONSIVE DESIGN - MEDIA QUERIES */
 
+@media (max-width: 1280px) {
+    .nav-list {
+        gap: 1rem;
+    }
+
+    .nav-link {
+        font-size: 0.8rem;
+    }
+
+    .header-cta .btn {
+        padding: 0.55rem 0.85rem;
+        font-size: 0.78rem;
+    }
+
+    .logo-text .tagline {
+        display: none;
+    }
+}
+
 @media (max-width: 1024px) {
     html {
         font-size: 15px;
@@ -1648,6 +1693,8 @@ a {
 
 @media (max-width: 768px) {
     .header-container {
+        display: flex;
+        justify-content: space-between;
         height: 70px;
     }
     

@@ -396,12 +396,13 @@ Bu montaj kurulum işi için fiyat teklifi alabilir miyim?`;
        5b. PORTFOLIO GALLERY SLIDER
        ========================================== */
     const galleryTrack = document.getElementById('gallery-track');
+    const galleryViewport = document.querySelector('.gallery-viewport');
     const galleryPrev = document.getElementById('gallery-prev');
     const galleryNext = document.getElementById('gallery-next');
     const galleryDotsContainer = document.getElementById('gallery-dots');
     const galleryItems = document.querySelectorAll('.gallery-item');
 
-    if (galleryTrack && galleryItems.length > 0) {
+    if (galleryTrack && galleryViewport && galleryItems.length > 0) {
         let galleryIndex = 0;
         let galleryVisible = 1;
 
@@ -431,12 +432,15 @@ Bu montaj kurulum işi için fiyat teklifi alabilir miyim?`;
             galleryVisible = getGalleryVisibleCount();
             galleryIndex = Math.min(Math.max(index, 0), getGalleryMaxIndex());
 
-            const itemWidth = 100 / galleryVisible;
+            const viewportWidth = galleryViewport.offsetWidth;
+            const slideWidth = viewportWidth / galleryVisible;
+
             galleryItems.forEach(item => {
-                item.style.flex = `0 0 ${itemWidth}%`;
+                item.style.width = `${slideWidth}px`;
+                item.style.flex = `0 0 ${slideWidth}px`;
             });
 
-            galleryTrack.style.transform = `translateX(-${galleryIndex * itemWidth}%)`;
+            galleryTrack.style.transform = `translateX(-${galleryIndex * slideWidth}px)`;
 
             if (galleryDotsContainer) {
                 galleryDotsContainer.querySelectorAll('.dot').forEach((dot, idx) => {
@@ -456,10 +460,24 @@ Bu montaj kurulum işi için fiyat teklifi alabilir miyim?`;
             galleryNext.addEventListener('click', () => updateGallery(galleryIndex + 1));
         }
 
-        window.addEventListener('resize', () => updateGallery(galleryIndex));
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                buildGalleryDots();
+                updateGallery(galleryIndex);
+            }, 150);
+        });
 
         buildGalleryDots();
-        updateGallery(0);
+
+        const initGallery = () => updateGallery(galleryIndex);
+
+        if (galleryViewport.offsetWidth > 0) {
+            initGallery();
+        } else {
+            window.addEventListener('load', initGallery, { once: true });
+        }
     }
 
 
